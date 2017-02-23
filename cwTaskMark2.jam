@@ -1,0 +1,224 @@
+GOALS:
+	ACHIEVE travel_north; //sets the goal to travel north
+FACTS:
+FACT position 0 -1; //sets start position of the rover
+FACT direction 1; //sets the direction of the rover
+FACT rock1 4 6; //sets the position of the first rock
+FACT rock 3 2; //sets the position of the second rock
+FACT waterRock 2 4; //sets the postion of the rock containing water
+FACT waterFound 0; //value judging if water is found, set to 0 by default (water not found) and is set to 1 when water is found
+FACT oldPosition 0 0; //sets the old position of the rover/base position
+Plan: { //this plan moves the rover north and calls the over plans to check for rocks/water and make the rover sweep west to east and east to west 
+NAME:
+	"Moving on the y axis"
+GOAL:
+	ACHIEVE travel_north; //goal is to make the rover go north
+BODY:
+	RETRIEVE position $x $y; //gets the postiion of the rover
+	RETRIEVE direction $z; //gets its directions
+	EXECUTE println "Currently at the base"; //outs that the rover is in the base
+	WHILE : TEST(< $y 7) //while the rover has not reached the top of the grid it will keep going up
+	{
+		ASSIGN $y (+ $y 1); //increments y
+		ASSERT position $x $y; //sets the rovers new position
+		EXECUTE println "Rover position:  " $x " " $y; //outsputs the rovers position
+		OR //creates an or of options for the agent to do
+		{
+		TEST(< $z 5); //is directions is less then 5 it does the following
+		WHILE : TEST(< $x 7) //while it hasnt hit the east side of the grid
+		{
+			PERFORM rock1_found; //calls plan that check for rock 1
+			PERFORM rock2_found; //calls plan that check for rock 2
+			PERFORM water_found; //calls plan that check rocks for water
+			RETRIEVE waterFound $f; //sets the water found value to what the water_found plan returns 
+			OR //creates an or of options for the agent to do
+			{
+			TEST(== $f 0); //if water hasnt been found 
+			PERFORM travel_east; //call plan that makes the rover go east
+			RETRIEVE position $x $y; //gets the new position of the rover
+			}
+			{
+			RETRIEVE position $x $y; //if water is found it just gets rover current position
+			};
+		};
+		ASSIGN $z (+ $z 5); //set direction to 5
+		}
+		{
+		TEST(> $z 5); //if z is more that 5 it does the followinf
+		WHILE : TEST(> $x 0) //while x is more then 0
+		{
+			PERFORM rock1_found; //calls plan that check for rock 1
+			PERFORM rock2_found; //calls plan that check for rock 2
+			PERFORM water_found;  //calls plan that check rocks for water
+			RETRIEVE waterFound $f; //sets the water found value to what the water_found plan returns 
+			OR //creates an or of options for the agent to do
+			{
+			TEST(== $f 0); //if water hasnt been found
+			PERFORM travel_west; //calls the plan that makes the rover travel west
+			RETRIEVE position $x $y; //gets the rovers new positions
+			}
+			{
+			RETRIEVE position $x $y; //if water is found it just gets rover current position
+			};
+		};
+		ASSIGN $z (- $z 5); //sets z to 0
+		};
+	};
+	OR //creates an or of options for the agent to do
+	{
+	TEST(== $f 0); //if water is not found 
+	RETRIEVE position $x $y; //gets position of rover
+	EXECUTE println "The rovers FINAL position is "$x " " $y; //outputs rovers current location
+	EXECUTE println "No rocks with water found in the area!"; //outputs the rover cant find any water
+	}
+	{ //if the rover has found water it does this
+	PERFORM arrive_at_base; //calls the plan for rover arriving to the base
+	EXECUTE println "Arrived at the base with the rock containing  water!"; //outputs that the rover has found water
+	};
+}
+
+Plan: { //this plan makes the rover go east
+NAME:
+	"Rover position: to the east"
+GOAL:
+	ACHIEVE travel_east; //goal is to make the rover travel east
+BODY:
+	RETRIEVE position $x $y; //gets the rovers position
+	ASSIGN $x (+ $x 1); //adds 1 to x
+	ASSERT position $x $y; //sets the new positions
+	EXECUTE println "Rover position:  " $x " " $y; //outputs the rovers position
+}
+
+Plan: { //this plan makes the rover go west
+NAME:
+	"Rover position: to the west"
+GOAL:
+	ACHIEVE travel_west; //goal is to make the rover go west
+BODY:
+	RETRIEVE position $x $y; //gets the position of the rover
+	ASSIGN $x (- $x 1); // takes 1 from x
+	ASSERT position $x $y; //sets the new position
+	EXECUTE println "Rover position:  " $x " " $y; //outputs the new position
+}
+
+Plan: { //this plan checks for if rock 1 has been found
+NAME:
+	"Rock spotted ahead"
+GOAL:
+	ACHIEVE rock1_found; 
+BODY:
+	RETRIEVE rock1 $a $b; //gets the rocks position
+	RETRIEVE position $x $y; //gets the position of the rover
+	OR //creates an or of options for the agent to do
+	{
+	TEST(== $x $a); // if the rovers x coordinate is the same as the rocks
+	OR //creates an or of options for the agent to do
+	{
+	TEST(== $y $b); // if the rovers y coordinate is the same as the rocks
+	EXECUTE println "Rock Found:      " $x " "$y; //outsputs that a rock has been found
+	EXECUTE println "No water"; // outputs that there is no water
+	EXECUTE println "continue past rock"; // outputs that rover is continueing past the rock
+	}
+	{
+	RETRIEVE rock1 $a $b; //gets the rocks location
+	};
+	}
+	{
+	RETRIEVE rock1 $a $b; //gets the rocks location
+	};
+}
+
+Plan: { //this plan checks if rock 2 has been found 
+NAME:
+	"rock found"
+GOAL:
+	ACHIEVE rock2_found;
+BODY:
+	RETRIEVE rock $a $b; //gets the rocks position
+	RETRIEVE position $x $y; //gets the position of the rover
+	OR //creates an or of options for the agent to do
+	{
+	TEST(== $x $a);  // if the rovers x coordinate is the same as the rocks
+	OR //creates an or of options for the agent to do
+	{
+	TEST(== $y $b); // if the rovers y coordinate is the same as the rocks
+	EXECUTE println "Rock Found:      " $x " "$y; //outsputs that a rock has been found
+	EXECUTE println "No water"; // outputs that there is no water
+	EXECUTE println "continue past rock"; // outputs that rover is continueing past the rock
+	} 
+	{
+	RETRIEVE rock $a $b; //gets the rocks location
+	};
+	}
+	{
+	RETRIEVE rock $a $b; //gets the rocks location
+	};
+}
+
+Plan: { // this plan checks if the rock with water has been found
+NAME:
+	"Rock3 spotted ahead" 
+GOAL:
+	ACHIEVE water_found;
+BODY:
+	RETRIEVE waterRock $a $b; //gets the water rocks locations
+	RETRIEVE position $x $y; //get the rovers location
+	OR //creates an or of options for the agent to do
+	{
+	TEST(== $x $a); // if the rovers x coordinate is the same as the water
+	OR //creates an or of options for the agent to do
+	{
+	TEST(== $y $b); // if the rovers y coordinate is the same as the water
+	EXECUTE println "Rock Found:      " $x " "$y; //outsputs that a rock has been found
+	EXECUTE println "Contains water"; //outsputs that it has water in it
+	EXECUTE println "Picking up rock"; //outsputs that it is picking it up
+	PERFORM return_to_base; //calls that plan that return the rover to base
+	}
+	{
+	RETRIEVE waterRock $a $b; //gets the waters location
+	};
+	}
+	{
+	RETRIEVE waterRock $a $b; //gets the waters location
+	}; 
+}
+
+PLAN: { //this plan gets the rover back to the base 
+NAME:
+	"Return to base"
+GOAL:
+	ACHIEVE return_to_base;
+BODY:
+	EXECUTE println "Returning to base"; //outsputs that the rover is returning to base
+	RETRIEVE position $x $y; //gets the rovers position
+	ASSERT oldPosition $x $y; //gets the starting position/base location
+	ASSERT waterFound 1; //sets that waterFound to 1 to show the rover has found the water
+	ASSERT position 7 7; //sets the postion to the edge of the grid
+	// waterFound and position are set to these values because these are the 2 possible reasons for the rover returning to base
+}
+
+PLAN: {
+NAME:
+	"Move to the base"
+GOAL:
+	ACHIEVE arrive_at_base;
+BODY:
+	RETRIEVE oldPosition $x $y;//gets the origional position/base position
+	WHILE : TEST(!= $y 0) //if y is not 0 it does the following
+	{
+		ASSIGN $y (- $y 1); //take 1 from y
+		ASSERT position $x $y; //sets the new rover position
+		ASSERT waterRock $x $y; //sets the new waterRock position (it is in the rover so is now moving)
+		EXECUTE println "Rover with water rock position:  " $x " " $y; //outputs rovers with the water rocks location
+		RETRIEVE position; //gets the rovers position
+	};
+	
+	WHILE : TEST(!= $x 0) //if x is not 0 it does the following
+	{
+		ASSIGN $x (- $x 1); //take 1 from x
+		ASSERT position $x $y; //sets the new rover position
+		ASSERT waterRock $x $y; //sets the new waterRock position (it is in the rover so is now moving)
+		EXECUTE println "Rover position:  " $x " " $y; //outputs rovers with the water rocks location
+		RETRIEVE position; //gets the rovers position
+	};
+}

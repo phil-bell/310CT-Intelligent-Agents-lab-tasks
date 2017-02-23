@@ -1,0 +1,8 @@
+GOALS:
+    ACHIEVE 
+FACTS:
+
+BODY:
+    ASSIGN $x 10
+    ASSIGN $y 10
+Plan:

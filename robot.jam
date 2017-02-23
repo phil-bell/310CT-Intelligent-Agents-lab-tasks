@@ -1,0 +1,57 @@
+GOALS:
+    ACHIEVE print_Position;
+FACTS:
+FACT Position 2 3;
+Plan: {
+NAME:
+	"retrieve the position"
+GOAL:
+	ACHIEVE print_Position;
+BODY:
+     RETRIEVE Position $x $y;
+     EXECUTE println "Position in the first plan: " $x " " $y;
+     ACHIEVE print_X_Y $x $y;
+FAILURE:
+	EXECUTE println "Retrieving position fails";
+}
+Plan: {
+NAME:
+	"print1 X Y"
+GOAL:
+	ACHIEVE print_X_Y $x $y;
+BODY:
+     ASSERT Position 3 4;
+     FACT Position $x1 $y1;			
+     EXECUTE println "Position in the second: " $x1 " " $y1;
+FAILURE:
+	EXECUTE println "Printing position fails-1";
+}
+Plan: {
+NAME:
+	"print2 X Y"
+GOAL:
+	ACHIEVE update_X_Y $x $y;
+BODY:
+     UPDATE (Position $x $y) (Position 5 6);
+     RETRIEVE Position $x $y;			
+     EXECUTE println "Position in the third " $x " " $y;
+FAILURE:
+	EXECUTE println "Printing position fails-2";
+}
+Plan: {
+NAME:
+	"print3 X Y"
+GOAL:
+	ACHIEVE retract_X_Y $x $y;
+BODY:
+    EXECUTE println "Position in the fourth before  " $x " " $y;
+       RETRACT Position $x $y;
+       RETRIEVE Position $x $y;		
+       EXECUTE println "Position in the fourth  " $x " " $y;
+FAILURE:
+	EXECUTE println "Printing position fails-3";
+}
+
+
+
+

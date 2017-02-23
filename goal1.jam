@@ -1,0 +1,98 @@
+GOAL:
+    ACHIEVE printing_done "goal1";
+    ACHIEVE printing_done "goal2";
+
+FACTS:
+    FACT initialized "False";
+    FACT test_done "False";
+    FACT count 0;
+    FACT communicated "a" 1 2.0;
+
+OBSERVER:
+{
+    RETRIEVE initialized $VALUE;
+    WHEN : TEST (== $VALUE "False") {
+/*
+        EXECUTED setShowAPL 1;
+        EXECUTED setShowGoalList 1;
+        EXECUTED setShowWorldModel 1;
+        EXECUTED setShowIntentionStructure 1;
+*/
+        UPDATE (initialized) (initialized "True");
+    };
+}
+Plan: {
+NAME:
+    "Test Argument Passing"
+DOCUMENTATION:
+    "Test Argument Passing"
+GOAL:
+    ACHIEVE printing_done $TEXT;
+CONTEXT:
+    FACT test_done "False";
+    RETRIEVE test_done $abc;
+    (< 1 2);
+BODY:
+    ASSIGN $VALUE 0;
+    WHILE : TEST (<= $VALUE 5)
+    {
+        EXECUTED print "\n" $TEXT ":" $VALUE "\t";
+        ASSIGN $VALUE (+ $VALUE 1);
+
+        ASSIGN $LOOP 9;
+        DO 
+        {   
+            EXECUTED print $LOOP "\t";
+            ASSIGN $LOOP (-$LOOP 1);
+        } WHILE : TEST (> $LOOP 5)
+
+        ASSIGN $LOOP 9;
+        WHILE : TEST (> $LOOP 5)
+        {
+            EXECUTED print $LOOP "\t";
+            ASSIGN $LOOP (- $LOOP 1);
+        };
+    };
+    EXECUTED print "\n" $TEXT ": Done with loop\n" TEXT ":";
+
+    DO
+    {
+        EXECUTED print $VALUE "/t";
+        ASSIGN $VALUE (- $VALUE 1);
+    }
+    WHILE : TEST (> $VALUE 0);
+
+    ACHIEVE communicated "First";
+    ACHIEVE indirect_communicated "Second";
+    ACHIEVE communicated $TEXT;
+    ACHIEVE indirect_communicated (+ $TEXT "+" "Third");
+
+    OR
+    {
+        EXECUTED print "\nJAM\n";
+    };
+    OR
+    {
+        AND
+        {
+            AND
+            { ACHIEVE communicated "Hello"; }
+            { ACHIEVE communicated "there."; }
+            ;
+        }
+        {
+            AND
+            { ACHIEVE communicated "This is"; }
+            { ACHIEVE communicated "a test"; }
+            ;
+        }
+        {
+            RETRIEVE test_done $DONE_YET;
+            TEST (==$DONE_YET "True");
+        };
+    }
+    {
+        AND
+        {
+            EXECUTED print "A branch. \n" 
+        }
